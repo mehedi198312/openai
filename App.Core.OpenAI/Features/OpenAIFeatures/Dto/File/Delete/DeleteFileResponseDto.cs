@@ -1,0 +1,16 @@
+﻿using System.Text.Json.Serialization;
+
+namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.File.Delete
+{
+    public class DeleteFileResponseDto
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+
+        [JsonPropertyName("object")]
+        public string Object { get; set; }
+
+        [JsonPropertyName("deleted")]
+        public bool? Deleted { get; set; }
+    }
+}
