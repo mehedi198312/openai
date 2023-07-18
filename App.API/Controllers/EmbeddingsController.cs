@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace App.API.Controllers
             _embeddingsService = embeddingsService;
         }
 
+        [Authorize(Key.One)]
         [HttpPost("creates")]
         public async Task<IActionResult> CreatedEmbeddings(CreatedEmbeddingsRequestDto request)
         {

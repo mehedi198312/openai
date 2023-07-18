@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.FineTunes.Create;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace App.API.Controllers
             _fineTunesService = fineTunesService;
         }
 
+        [Authorize(Key.One)]
         [HttpGet("list")]
         public async Task<IActionResult> GetFineTuneList()
         {
@@ -28,6 +30,7 @@ namespace App.API.Controllers
             return Ok(await _fineTunesService.GetFineTuneList(token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("create")]
         public async Task<IActionResult> CreateFineTunes(CreateFineTunesRequestDto request)
         {
@@ -44,6 +47,7 @@ namespace App.API.Controllers
             return Ok(await _fineTunesService.CreateFineTune(request, token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpGet("retrieve/{fineTuneId}")]
         public async Task<IActionResult> RetrieveFineTune(string fineTuneId)
         {
@@ -53,6 +57,7 @@ namespace App.API.Controllers
             return Ok(await _fineTunesService.RetrieveFineTune(token, baseurl, fineTuneId));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("{fineTuneId}/cancel")]
         public async Task<IActionResult> CancelFineTune(string fineTuneId)
         {
@@ -62,6 +67,7 @@ namespace App.API.Controllers
             return Ok(await _fineTunesService.CancelFineTune(token, baseurl, fineTuneId));
         }
 
+        [Authorize(Key.One)]
         [HttpGet("{fineTuneId}/events")]
         public async Task<IActionResult> GetFineTuneEventList(string fineTuneId)
         {
@@ -71,6 +77,7 @@ namespace App.API.Controllers
             return Ok(await _fineTunesService.GetFineTuneEventList(token, baseurl, fineTuneId));
         }
 
+        [Authorize(Key.One)]
         [HttpDelete("model/delete/{fineTunedModel}")]
         public async Task<IActionResult> DeleteFineTuneModel(string fineTunedModel)
         {

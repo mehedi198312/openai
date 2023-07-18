@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Chat;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -18,6 +19,7 @@ namespace App.API.Controllers
             _chatCompletionsService = chatCompletionsService;
         }
 
+        [Authorize(Key.One)]
         [HttpPost("completions")]
         public async Task<IActionResult> Completions(ChatCompletionsRequestDto request)
         {

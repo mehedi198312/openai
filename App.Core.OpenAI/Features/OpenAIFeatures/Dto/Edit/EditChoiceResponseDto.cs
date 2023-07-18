@@ -1,5 +1,4 @@
-﻿using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Models;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Edit
 {

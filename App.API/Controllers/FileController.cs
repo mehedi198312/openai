@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.File.Upload;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace App.API.Controllers
             _fileService = fileService;
         }
 
+        [Authorize(Key.One)]
         [HttpPost("list")]
         public async Task<IActionResult> FileList()
         {
@@ -28,6 +30,7 @@ namespace App.API.Controllers
             return Ok(await _fileService.FileList(token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("upload")]
         public async Task<IActionResult> UploadFile([FromForm] UploadFileRequestDto request)
         {
@@ -45,6 +48,7 @@ namespace App.API.Controllers
             return Ok(await _fileService.UploadFile(request, token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteFile(string id)
         {
@@ -54,6 +58,7 @@ namespace App.API.Controllers
             return Ok(await _fileService.DeleteFile(token, baseurl, id));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("retrieve/{id}")]
         public async Task<IActionResult> RetrieveFile(string id)
         {
@@ -63,6 +68,7 @@ namespace App.API.Controllers
             return Ok(await _fileService.RetrieveFile(token, baseurl, id));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("retrieve/{id}/content")]
         public async Task<IActionResult> RetrieveFileContent(string id)
         {

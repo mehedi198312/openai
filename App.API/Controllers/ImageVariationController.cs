@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Images.Variation;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -18,6 +19,7 @@ namespace App.API.Controllers
             _imageVariation = imageVariation;
         }
 
+        //[Authorize(Key.One)]
         [HttpPost("variations")]
         public async Task<IActionResult> CreateImageVariation([FromForm] CreateImageVariationRequestDto request)
         {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Common
+﻿namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Common
 {
     public class BaseResponse
     {

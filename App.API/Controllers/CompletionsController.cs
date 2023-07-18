@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace App.API.Controllers
             _completionsService = completionsService;
         }
 
+        [Authorize(Key.One)]
         [HttpPost()]
         public async Task<IActionResult> Completions(CompletionsRequestDto request)
         {

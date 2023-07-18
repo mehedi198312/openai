@@ -2,6 +2,7 @@ using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Images.Create;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Images.Edit;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace App.API.Controllers
             _imageService = imageService;
         }
 
+        [Authorize(Key.One)]
         [HttpPost("creates")]
         public async Task<IActionResult> ImagesCreates(CreateImageRequestDto request)
         {
@@ -36,6 +38,7 @@ namespace App.API.Controllers
             return Ok(await _imageService.CreateImage(request, token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("edits")]
         public async Task<IActionResult> ImagesEdits([FromForm] EditImageRequestDto request)
         {

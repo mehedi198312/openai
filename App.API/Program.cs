@@ -1,6 +1,5 @@
-
-
 using App.Core.OpenAI.IOC;
+using OpenAIApp.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +21,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// global error handler
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app.UseHttpsRedirection();
 

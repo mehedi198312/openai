@@ -1,5 +1,6 @@
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -17,6 +18,7 @@ namespace App.API.Controllers
             _modelsService = modelsService;
         }
 
+        [Authorize(Key.One)]
         [HttpGet()]
         public async Task<IActionResult> Models()
         {
@@ -25,6 +27,7 @@ namespace App.API.Controllers
             return Ok(await _modelsService.Models(token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpGet("{id}")]
         public async Task<IActionResult> Models(string id)
         {

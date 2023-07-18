@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Models;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -17,7 +18,8 @@ namespace App.API.Controllers
             _configuration = configuration;
             _editsService = editsService;
         }
-        
+
+        [Authorize(Key.One)]
         [HttpPost()]
         public async Task<IActionResult> Edits(EditRequestDto request)
         {

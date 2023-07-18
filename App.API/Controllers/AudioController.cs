@@ -1,6 +1,7 @@
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Audio;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using OpenAIApp.Helpers;
 
 namespace App.API.Controllers
 {
@@ -19,6 +20,7 @@ namespace App.API.Controllers
             _audioService = audioService;
         }
 
+        [Authorize(Key.One)]
         [HttpPost("transcriptions")]
         public async Task<IActionResult> CreateTranscriptions([FromForm] CreateTranscriptionsRequestDto request)
         {
@@ -36,6 +38,7 @@ namespace App.API.Controllers
             return Ok(await _audioService.CreateTranscriptions(request, token, baseurl));
         }
 
+        [Authorize(Key.One)]
         [HttpPost("translations")]
         public async Task<IActionResult> CreateTranslations([FromForm] CreateTranslationsRequestDto request)
         {

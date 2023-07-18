@@ -1,7 +1,4 @@
 ﻿using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Common;
-using App.Core.OpenAI.Features.OpenAIFeatures.Dto.File.Delete;
-using App.Core.OpenAI.Features.OpenAIFeatures.Dto.File.List;
-using App.Core.OpenAI.Features.OpenAIFeatures.Dto.File.Retrieve;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.File.Upload;
 
 namespace App.Core.OpenAI.Services.Interfaces
