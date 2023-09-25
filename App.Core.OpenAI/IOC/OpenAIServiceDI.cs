@@ -19,6 +19,7 @@ namespace App.Core.OpenAI.IOC
             services.AddScoped<IAudioService, AudioService>();
             services.AddScoped<IFileService, FileService>();
             services.AddScoped<IFineTunesService, FineTunesService>();
+            services.AddScoped<IPineConeService, PineConeService>();
 
             return services;
         }

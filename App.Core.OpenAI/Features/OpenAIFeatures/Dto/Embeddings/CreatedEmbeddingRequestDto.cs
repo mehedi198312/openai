@@ -2,12 +2,13 @@
 
 namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings
 {
-    public class CreatedEmbeddingsRequestDto
+    public class CreatedEmbeddingRequestDto
     {
         [JsonPropertyName("model")]
         public string Model { get; set; }
 
         [JsonPropertyName("input")]
-        public List<string> Input { get; set; }
-    }       
+        public string Input { get; set; }
+    }
+
 }

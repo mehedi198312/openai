@@ -10,12 +10,13 @@
     <Folder Include="Entities\" />
     <Folder Include="Features\OpenAIFeatures\Commands\" />
     <Folder Include="Features\OpenAIFeatures\Queries\" />
-    <Folder Include="Common\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="iTextSharp" Version="5.5.13.3" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Pinecone.NET" Version="1.3.0" />
   </ItemGroup>
 
 </Project>

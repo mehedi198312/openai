@@ -30,6 +30,7 @@ namespace App.Core.OpenAI.Services.Implementations
                 var errorResponse = JsonSerializer.Deserialize<OpenAIErrorResponseDto>(resjson);
                 baseResponse.IsSuccessful = false;
                 baseResponse.Data = errorResponse;
+                return baseResponse;
             }
             baseResponse.IsSuccessful = true;
             baseResponse.Data = JsonSerializer.Deserialize<CreateImageResponseDto>(resjson);

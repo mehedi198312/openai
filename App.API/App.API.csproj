@@ -16,4 +16,8 @@
     <ProjectReference Include="..\App.Core.OpenAI\App.Core.OpenAI.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UploadFile\" />
+  </ItemGroup>
+
 </Project>

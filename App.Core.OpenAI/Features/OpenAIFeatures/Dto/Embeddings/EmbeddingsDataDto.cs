@@ -8,7 +8,7 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings
         public string Object { get; set; }
 
         [JsonPropertyName("embedding")]
-        public List<double> Embedding { get; set; }
+        public List<float> Embedding { get; set; }
 
         [JsonPropertyName("index")]
         public int? Index { get; set; }
