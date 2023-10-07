@@ -8,7 +8,7 @@ namespace App.Core.OpenAI.Services.Interfaces
     {
         Task<BaseResponse> Upsert(List<float> Embedding, string chunk, EmbeddingsFileDto request, AppSettings appSettings);
 
-        Task<BaseResponse> UpsertList(List<EmbeddingsDataDto> data, List<string> chunks, EmbeddingsFileDto request, AppSettings appSettings);
+        Task<BaseResponse> UpsertList(List<EmbeddingsDataDto> data, List<ChunkDto> chunks, EmbeddingsFileDto request, AppSettings appSettings);
 
         Task<BaseResponse> Fetch(string vector, AppSettings appSettings);
 

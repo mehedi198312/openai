@@ -59,7 +59,7 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        public async Task<BaseResponse> UpsertList(List<EmbeddingsDataDto> embeddingsData, List<string> chunks, EmbeddingsFileDto request, AppSettings appSettings)
+        public async Task<BaseResponse> UpsertList(List<EmbeddingsDataDto> embeddingsData, List<ChunkDto> chunks, EmbeddingsFileDto request, AppSettings appSettings)
         {
             var baseResponse = new BaseResponse();
             baseResponse.Message = MessageManager.PinecoreConnectionFail;
@@ -97,7 +97,8 @@ namespace App.Core.OpenAI.Services.Implementations
                         ["project"] = request.Project,
                         ["userId"] = request.UserId,
                         ["fileId"] = request.FileId,
-                        ["chunk"] = chunks[i].ToString()
+                        ["chunk"] = chunks[i].Chunk.ToString(),
+                        ["pageNo"] = chunks[i].PageNo.ToString()
                     }
                 };
                 i= i + 1;
@@ -190,7 +191,7 @@ namespace App.Core.OpenAI.Services.Implementations
                 }
             };
 
-            var scored = await index.Query(vector.ToArray(), topK: 10, filter, includeMetadata: true);
+            var scored = await index.Query(vector.ToArray(), topK: appSettings.TopK, filter, includeMetadata: true);
 
             baseResponse.IsSuccessful = true;
             baseResponse.Data = scored;

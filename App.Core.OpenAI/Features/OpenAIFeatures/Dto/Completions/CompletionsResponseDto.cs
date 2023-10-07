@@ -18,8 +18,16 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions
 
         [JsonPropertyName("choices")]
         public List<CompletionsChoiceResponseDto> Choices { get; set; }
-        
+
         [JsonPropertyName("usage")]
         public CompletionsUsageResponseDto Usage { get; set; }
     }
+
+    public class AnswerFromVectorDto
+    {
+        public bool IsSuccessful { get; set; }
+        public CompletionsResponseDto CompletionsResponse { get; set; }
+        public List<int> NoOfPages { get; set; }
+    }
+
 }

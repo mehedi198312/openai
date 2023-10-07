@@ -1,5 +1,4 @@
 ﻿using App.Core.OpenAI.Common;
-using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Chat;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Common;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings;
@@ -48,24 +47,43 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        private async Task<BaseResponse> CreateChunk(string path, int chunkSize)
+        private async Task<BaseResponse> CreateChunk(string path, int chunkSize, int overLapping)
         {
             var baseResponse = new BaseResponse();
+            baseResponse.Message = MessageManager.ChunkCreateFailed;            
+            List<ChunkDto> Chunks = new List<ChunkDto>();
 
             PdfReader reader = new PdfReader(path);
-            baseResponse.Message = MessageManager.ChunkCreateFailed;
-
-            string text = string.Empty;
             for (int page = 1; page <= reader.NumberOfPages; page++)
             {
-                text += PdfTextExtractor.GetTextFromPage(reader, page);
+                var textByPage = PdfTextExtractor.GetTextFromPage(reader, page);
+                List<string> chunksByPage = textByPage.ToString().Chunk(chunkSize).Select(x => new string(x)).ToList();
+                for(int i=0; i< chunksByPage.Count; i++)
+                {
+                    ChunkDto chunk = new ChunkDto();
+                    chunk.PageNo = page;
+                    string overlapString = (i > 0)? chunksByPage[i - 1].ToString().Substring(chunksByPage[i - 1].ToString().Length-overLapping, overLapping):"";
+                    chunk.Chunk = $"{overlapString} {chunksByPage[i]}";
+                    Chunks.Add(chunk);
+                }
             }
             reader.Close();
 
-            List<string> chunks = text.ToString().Chunk(chunkSize).Select(x => new string(x)).ToList();
+            #region "Old Logic"
+
+            //string text = string.Empty;
+            //for (int page = 1; page <= reader.NumberOfPages; page++)
+            //{
+            //    text += PdfTextExtractor.GetTextFromPage(reader, page);
+            //}
+            //reader.Close();
+
+            //List<string> chunks = text.ToString().Chunk(chunkSize).Select(x => new string(x)).ToList();
+
+            #endregion
 
             baseResponse.IsSuccessful = true;
-            baseResponse.Data = chunks;
+            baseResponse.Data = Chunks;
             baseResponse.Message = MessageManager.ChunkCreateSuccessfully;
 
             return baseResponse;
@@ -101,7 +119,7 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        private async Task<BaseResponse> CreateEmbeddings(AppSettings appSettings, List<string> chunks)
+        private async Task<BaseResponse> CreateEmbeddings(AppSettings appSettings, List<ChunkDto> chunks)
         {
             var baseResponse = new BaseResponse();
             baseResponse.Message = MessageManager.EmbeddingCreateFailed;
@@ -111,7 +129,7 @@ namespace App.Core.OpenAI.Services.Implementations
 
             CreatedEmbeddingsRequestDto createdEmbeddingsRequestDto = new CreatedEmbeddingsRequestDto();
             createdEmbeddingsRequestDto.Model = appSettings.EmbeddingModel;
-            createdEmbeddingsRequestDto.Input = chunks;
+            createdEmbeddingsRequestDto.Input = chunks.Select(x => x.Chunk).ToList();
 
             var json = JsonSerializer.Serialize(createdEmbeddingsRequestDto);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -140,16 +158,16 @@ namespace App.Core.OpenAI.Services.Implementations
             if (!fileUploadResponse.IsSuccessful)
                 return fileUploadResponse;
 
-            var createChunkReponse = await CreateChunk(fileUploadResponse.Data.ToString(), appSettings.ChunkSize);
+            var createChunkReponse = await CreateChunk(fileUploadResponse.Data.ToString(), appSettings.ChunkSize, appSettings.ChunkOverlap);
 
             if(!createChunkReponse.IsSuccessful)
                 return createChunkReponse;
 
-            var createEmbeddingsResponse = await CreateEmbeddings(appSettings, ((List<string>)createChunkReponse.Data));
+            var createEmbeddingsResponse = await CreateEmbeddings(appSettings, ((List<ChunkDto>)createChunkReponse.Data));
             if (createEmbeddingsResponse.IsSuccessful)
             {
                 var embeddingsData = (CreatedEmbeddingsResponseDto)createEmbeddingsResponse.Data;
-                await _pineConeService.UpsertList(embeddingsData.Data, ((List<string>)createChunkReponse.Data), embeddingsFile, appSettings);
+                await _pineConeService.UpsertList(embeddingsData.Data, ((List<ChunkDto>)createChunkReponse.Data), embeddingsFile, appSettings);
             }
 
             var baseResponse = new BaseResponse();
@@ -158,25 +176,27 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        public async Task<BaseResponse> QueryByVector(SearchEmbeddingDto searchEmbedding, AppSettings appSettings)
+        public async Task<AnswerFromVectorDto> QueryByVector(SearchEmbeddingDto searchEmbedding, AppSettings appSettings)
         {
-            var baseResponse = new BaseResponse();
+            AnswerFromVectorDto answerFromVectorDto = new AnswerFromVectorDto();
 
             //Create search string embedding
             var searchStringEmbedding = await CreateEmbedding(appSettings, searchEmbedding.AskedOrSearch);
             if (!searchStringEmbedding.IsSuccessful)
-                return searchStringEmbedding;
+                return answerFromVectorDto;
 
             //Search by vector
             var searchStringVector = ((CreatedEmbeddingsResponseDto)searchStringEmbedding.Data).Data.FirstOrDefault().Embedding;
             var scoredVectors = await _pineConeService.QueryByVector(searchEmbedding, searchStringVector, appSettings);
             if (!scoredVectors.IsSuccessful)
-                return scoredVectors;
+                return answerFromVectorDto;
 
             string filterredString = "";
+            List<int> noOfPages = new List<int>();
             foreach ( var scoredVector in (ScoredVector[])scoredVectors.Data)
             {
                 filterredString += scoredVector.Metadata.FirstOrDefault().Value.Inner;
+                noOfPages.Add(Convert.ToInt16(scoredVector.Metadata.ToList()[2].Value.Inner));
             }
 
             //Get search result from filtered context which is get by vector search.
@@ -194,8 +214,16 @@ namespace App.Core.OpenAI.Services.Implementations
                 "Question: " + searchEmbedding.AskedOrSearch + "\n" +
                 "Answer:";
 
-            baseResponse = await _completionsService.Completions(completionsRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);            
-            return baseResponse;
+            var result  = await _completionsService.Completions(completionsRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);
+            
+            if (!result.IsSuccessful)
+                return answerFromVectorDto;
+
+            answerFromVectorDto.IsSuccessful = true;
+            answerFromVectorDto.CompletionsResponse = (CompletionsResponseDto)result.Data;           
+            answerFromVectorDto.NoOfPages = noOfPages.Distinct().ToList();
+
+            return answerFromVectorDto;
 
         }
 

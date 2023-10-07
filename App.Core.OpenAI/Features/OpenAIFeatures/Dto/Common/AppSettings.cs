@@ -21,5 +21,6 @@
         public string PineConeAPIkey { get; set; }
         public string PineConeEnvironment { get; set; }
         public string IndexName { get; set; }
+        public uint TopK { get; set; }
     }
 }

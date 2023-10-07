@@ -79,6 +79,7 @@ namespace App.API.Controllers
             appSettings.PineConeAPIkey = _configuration.GetSection("PineCone").GetSection("APIkey").Value;
             appSettings.PineConeEnvironment = _configuration.GetSection("PineCone").GetSection("Environment").Value;
             appSettings.IndexName = _configuration.GetSection("PineCone").GetSection("IndexName").Value;
+            appSettings.TopK = Convert.ToUInt16(_configuration.GetSection("PineCone").GetSection("TopK").Value);
 
             return Ok(await _embeddingsService.QueryByVector(searchEmbedding, appSettings));
         }
