@@ -21,7 +21,7 @@ namespace App.API.Controllers
 
         [Authorize(Key.One)]
         [HttpPost("variations")]
-        public async Task<IActionResult> CreateImageVariation(CreateImageVariationRequestDto1 request)
+        public async Task<IActionResult> CreateImageVariation([FromForm] CreateImageVariationRequestDto request)
         {
 
             #region "Sample Request"
@@ -35,7 +35,7 @@ namespace App.API.Controllers
             string token = _configuration.GetSection("OpenAI").GetSection("APIkeys").Value;
             string baseurl = _configuration.GetSection("OpenAI").GetSection("BaseUrl").Value;
 
-            return Ok();// await _imageVariation.CreateImageVariation(request, token, baseurl));
+            return Ok(await _imageVariation.CreateImageVariation(request, token, baseurl));
 
         }
 
