@@ -69,7 +69,7 @@ namespace App.API.Controllers
             appSettings.EmbeddingFile = _configuration.GetSection("SearchFile").GetSection("EmbeddingFile").Value;
             appSettings.ChunkSize = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ChunkSize").Value.ToString());
             appSettings.ChunkOverlap = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ChunkOverlap").Value.ToString());
-            appSettings.Model = _configuration.GetSection("SearchFile").GetSection("Model").Value.ToString();
+            //appSettings.Model = _configuration.GetSection("SearchFile").GetSection("Model").Value.ToString();
             appSettings.Temperature = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("Temperature").Value.ToString());
             appSettings.MaxTokens = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("MaxTokens").Value.ToString());
             appSettings.TopP = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("TopP").Value.ToString());

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings;
+using System.Text.Json.Serialization;
 
 namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions
 {
@@ -27,6 +28,7 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions
     {
         public bool IsSuccessful { get; set; }
         public CompletionsResponseDto CompletionsResponse { get; set; }
+        public CreatedEmbeddingsResponseDto CreatedEmbeddingsResponse { get; set; }
         public List<int> NoOfPages { get; set; }
     }
 

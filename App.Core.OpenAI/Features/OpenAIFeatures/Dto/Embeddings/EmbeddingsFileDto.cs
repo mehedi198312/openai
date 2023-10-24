@@ -16,6 +16,9 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings
 
         [JsonPropertyName("file")]
         public IFormFile File { get; set; }
+
+        [JsonPropertyName("embeddinglanguageModel")]
+        public string? EmbeddingLanguageModel { get; set; }
     }
 
 }

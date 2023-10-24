@@ -21,5 +21,12 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings
 
         [JsonPropertyName("askedOrSearch")]
         public string AskedOrSearch { get; set; }
+
+        [JsonPropertyName("gptlanguageModel")]
+        public string? GPTLanguageModel { get; set; }
+
+        [JsonPropertyName("embeddinglanguageModel")]
+        public string? EmbeddingLanguageModel { get; set; }
+
     }
 }

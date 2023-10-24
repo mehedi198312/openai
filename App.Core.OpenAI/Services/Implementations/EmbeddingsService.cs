@@ -89,7 +89,7 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        private async Task<BaseResponse> CreateEmbedding(AppSettings appSettings, string chunk)
+        private async Task<BaseResponse> CreateEmbedding(AppSettings appSettings, string languageModel, string chunk)
         {
             var baseResponse = new BaseResponse();
             baseResponse.Message = MessageManager.EmbeddingCreateFailed;
@@ -98,7 +98,7 @@ namespace App.Core.OpenAI.Services.Implementations
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appSettings.OpenAiAPIkey);
 
             CreatedEmbeddingRequestDto createdEmbeddingRequestDto = new CreatedEmbeddingRequestDto();
-            createdEmbeddingRequestDto.Model = appSettings.EmbeddingModel;
+            createdEmbeddingRequestDto.Model = languageModel;
             createdEmbeddingRequestDto.Input = chunk;
 
             var json = JsonSerializer.Serialize(createdEmbeddingRequestDto);
@@ -119,7 +119,7 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        private async Task<BaseResponse> CreateEmbeddings(AppSettings appSettings, List<ChunkDto> chunks)
+        private async Task<BaseResponse> CreateEmbeddings(AppSettings appSettings, string languageModel, List<ChunkDto> chunks)
         {
             var baseResponse = new BaseResponse();
             baseResponse.Message = MessageManager.EmbeddingCreateFailed;
@@ -128,7 +128,7 @@ namespace App.Core.OpenAI.Services.Implementations
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", appSettings.OpenAiAPIkey);
 
             CreatedEmbeddingsRequestDto createdEmbeddingsRequestDto = new CreatedEmbeddingsRequestDto();
-            createdEmbeddingsRequestDto.Model = appSettings.EmbeddingModel;
+            createdEmbeddingsRequestDto.Model = languageModel;
             createdEmbeddingsRequestDto.Input = chunks.Select(x => x.Chunk).ToList();
 
             var json = JsonSerializer.Serialize(createdEmbeddingsRequestDto);
@@ -163,7 +163,7 @@ namespace App.Core.OpenAI.Services.Implementations
             if(!createChunkReponse.IsSuccessful)
                 return createChunkReponse;
 
-            var createEmbeddingsResponse = await CreateEmbeddings(appSettings, ((List<ChunkDto>)createChunkReponse.Data));
+            var createEmbeddingsResponse = await CreateEmbeddings(appSettings, embeddingsFile.EmbeddingLanguageModel, ((List<ChunkDto>)createChunkReponse.Data));
             if (createEmbeddingsResponse.IsSuccessful)
             {
                 var embeddingsData = (CreatedEmbeddingsResponseDto)createEmbeddingsResponse.Data;
@@ -181,12 +181,13 @@ namespace App.Core.OpenAI.Services.Implementations
             AnswerFromVectorDto answerFromVectorDto = new AnswerFromVectorDto();
 
             //Create search string embedding
-            var searchStringEmbedding = await CreateEmbedding(appSettings, searchEmbedding.AskedOrSearch);
+            var searchStringEmbedding = await CreateEmbedding(appSettings, searchEmbedding.EmbeddingLanguageModel, searchEmbedding.AskedOrSearch);
             if (!searchStringEmbedding.IsSuccessful)
                 return answerFromVectorDto;
 
             //Search by vector
-            var searchStringVector = ((CreatedEmbeddingsResponseDto)searchStringEmbedding.Data).Data.FirstOrDefault().Embedding;
+            var createdEmbeddingsResponseDto = (CreatedEmbeddingsResponseDto)searchStringEmbedding.Data;
+            var searchStringVector = createdEmbeddingsResponseDto.Data.FirstOrDefault().Embedding;
             var scoredVectors = await _pineConeService.QueryByVector(searchEmbedding, searchStringVector, appSettings);
             if (!scoredVectors.IsSuccessful)
                 return answerFromVectorDto;
@@ -201,7 +202,7 @@ namespace App.Core.OpenAI.Services.Implementations
 
             //Get search result from filtered context which is get by vector search.
             CompletionsRequestDto completionsRequestDto = new CompletionsRequestDto();
-            completionsRequestDto.Model = appSettings.Model;// "text-davinci-003";
+            completionsRequestDto.Model = searchEmbedding.GPTLanguageModel;// "text-davinci-003";
             completionsRequestDto.Temperature = appSettings.Temperature;//  0;
             completionsRequestDto.MaxTokens = appSettings.MaxTokens;//  150;
             completionsRequestDto.TopP = appSettings.TopP;//  1;
@@ -220,6 +221,7 @@ namespace App.Core.OpenAI.Services.Implementations
                 return answerFromVectorDto;
 
             answerFromVectorDto.IsSuccessful = true;
+            answerFromVectorDto.CreatedEmbeddingsResponse = createdEmbeddingsResponseDto;
             answerFromVectorDto.CompletionsResponse = (CompletionsResponseDto)result.Data;           
             answerFromVectorDto.NoOfPages = noOfPages.Distinct().ToList();
 
