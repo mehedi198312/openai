@@ -18,5 +18,8 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Chat
 
         [JsonPropertyName("choices")]
         public List<OpenAIChatCompletionsChoiceResponseDto> Choices { get; set; }
-    }
+
+        [JsonPropertyName("usage")]
+        public ChatCompletionsUsageDto Usage { get; set; }
+    }    
 }
