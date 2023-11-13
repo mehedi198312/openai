@@ -22,14 +22,5 @@ namespace App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions
 
         [JsonPropertyName("usage")]
         public CompletionsUsageResponseDto Usage { get; set; }
-    }
-
-    public class AnswerFromVectorDto
-    {
-        public bool IsSuccessful { get; set; }
-        public CompletionsResponseDto CompletionsResponse { get; set; }
-        public CreatedEmbeddingsResponseDto CreatedEmbeddingsResponse { get; set; }
-        public List<int> NoOfPages { get; set; }
-    }
-
+    }    
 }

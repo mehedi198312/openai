@@ -151,29 +151,35 @@ namespace App.Core.OpenAI.Services.Implementations
 
         #endregion
 
-        public async Task<BaseResponse> CreateEmbeddings(EmbeddingsFileDto embeddingsFile, AppSettings appSettings)
+        public async Task<GeneratedEmbeddingsDto> CreateEmbeddings(EmbeddingsFileDto embeddingsFile, AppSettings appSettings)
         {
+            GeneratedEmbeddingsDto generatedEmbeddingsDto = new GeneratedEmbeddingsDto();
+            generatedEmbeddingsDto.IsSuccessful = false;
+
+            //Upload file
             var fileUploadResponse = await UploadFile(embeddingsFile, appSettings.EmbeddingFile);            
-
             if (!fileUploadResponse.IsSuccessful)
-                return fileUploadResponse;
+                generatedEmbeddingsDto.Message = fileUploadResponse.Message;
 
+            //Create chunk for embedding file
             var createChunkReponse = await CreateChunk(fileUploadResponse.Data.ToString(), appSettings.ChunkSize, appSettings.ChunkOverlap);
-
             if(!createChunkReponse.IsSuccessful)
-                return createChunkReponse;
+                generatedEmbeddingsDto.Message = createChunkReponse.Message;
 
+            //Generate embedding/vector using OpenAI embedding API
             var createEmbeddingsResponse = await CreateEmbeddings(appSettings, embeddingsFile.EmbeddingLanguageModel, ((List<ChunkDto>)createChunkReponse.Data));
             if (createEmbeddingsResponse.IsSuccessful)
             {
-                var embeddingsData = (CreatedEmbeddingsResponseDto)createEmbeddingsResponse.Data;
-                await _pineConeService.UpsertList(embeddingsData.Data, ((List<ChunkDto>)createChunkReponse.Data), embeddingsFile, appSettings);
+                //Save vector into pinecone vector database
+                var createdEmbeddingsResponseDto = (CreatedEmbeddingsResponseDto)createEmbeddingsResponse.Data;
+                await _pineConeService.UpsertList(createdEmbeddingsResponseDto.Data, ((List<ChunkDto>)createChunkReponse.Data), embeddingsFile, appSettings);
+            
+                //return response
+                generatedEmbeddingsDto.CreatedEmbeddingsResponse = createdEmbeddingsResponseDto;
+                generatedEmbeddingsDto.IsSuccessful = true;
             }
 
-            var baseResponse = new BaseResponse();
-            baseResponse.IsSuccessful = true;
-            baseResponse.Message = MessageManager.EmbeddingCreateSuccessfully;
-            return baseResponse;
+            return generatedEmbeddingsDto;
         }
 
         public async Task<AnswerFromVectorDto> QueryByVector(SearchEmbeddingDto searchEmbedding, AppSettings appSettings)
