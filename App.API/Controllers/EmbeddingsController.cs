@@ -48,6 +48,7 @@ namespace App.API.Controllers
             appSettings.TopP = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("TopP").Value.ToString());
             appSettings.FrequencyPenalty = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("FrequencyPenalty").Value.ToString());
             appSettings.PresencePenalty = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("PresencePenalty").Value.ToString());
+            appSettings.ContextLengthForQuestionSet = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ContextLengthForQuestionSet").Value.ToString());
 
             appSettings.PineConeAPIkey = _configuration.GetSection("PineCone").GetSection("APIkey").Value;
             appSettings.PineConeEnvironment = _configuration.GetSection("PineCone").GetSection("Environment").Value;

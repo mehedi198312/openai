@@ -7,6 +7,7 @@ using App.Core.OpenAI.Services.Interfaces;
 using iTextSharp.text.pdf;
 using iTextSharp.text.pdf.parser;
 using Pinecone;
+using System.IO;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -149,6 +150,50 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
+        private async Task<QuestionSetDto> CreateQuestionSet(string path, string languageModel, AppSettings appSettings)
+        {
+            QuestionSetDto sampleQuestionsSet = new QuestionSetDto();
+
+            string context = "";
+
+            PdfReader reader = new PdfReader(path);
+            for (int page = 1; page <= reader.NumberOfPages; page++)
+            {
+                context = context + " " + PdfTextExtractor.GetTextFromPage(reader, page);
+            }
+            reader.Close();
+
+            context = context.Replace('\n', ' ');
+
+            //Take context for preparing sample question set 
+            if (context.Length > appSettings.ContextLengthForQuestionSet)
+                context = context.Substring(0, appSettings.ContextLengthForQuestionSet);
+
+            //Get a set of sample questions which are highly depends on provided file.
+            CompletionsRequestDto completionsRequestDto = new CompletionsRequestDto();
+            completionsRequestDto.Model = languageModel;// "text-davinci-003";
+            completionsRequestDto.Temperature = appSettings.Temperature;//  0;
+            completionsRequestDto.MaxTokens = appSettings.MaxTokens;//  150;
+            completionsRequestDto.TopP = appSettings.TopP;//  1;
+            completionsRequestDto.FrequencyPenalty = appSettings.FrequencyPenalty;//  0;
+            completionsRequestDto.PresencePenalty = appSettings.PresencePenalty;//  0;
+
+            completionsRequestDto.Prompt = "Create a question set based on the context below, " +
+                "and if unable to create a set of question based on the context, say \"Sorry, I am unable to generate question set.\"\n\n" +
+                "Context: " + context + "\n\n---\n\n";
+
+            var result = await _completionsService.Completions(completionsRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);
+
+            if (!result.IsSuccessful)
+                return sampleQuestionsSet;
+
+            sampleQuestionsSet.IsSuccessful = true;            
+            sampleQuestionsSet.QuestionSet = (CompletionsResponseDto)result.Data;
+
+            return sampleQuestionsSet;
+
+        }
+
         #endregion
 
         public async Task<GeneratedEmbeddingsDto> CreateEmbeddings(EmbeddingsFileDto embeddingsFile, AppSettings appSettings)
@@ -161,10 +206,13 @@ namespace App.Core.OpenAI.Services.Implementations
             if (!fileUploadResponse.IsSuccessful)
                 generatedEmbeddingsDto.Message = fileUploadResponse.Message;
 
-            //Create chunk for embedding file
+            //Create chunk from file context file
             var createChunkReponse = await CreateChunk(fileUploadResponse.Data.ToString(), appSettings.ChunkSize, appSettings.ChunkOverlap);
             if(!createChunkReponse.IsSuccessful)
                 generatedEmbeddingsDto.Message = createChunkReponse.Message;
+
+            //Generate a quesiton set based on provided file context
+            var questionSetResponse = await CreateQuestionSet(fileUploadResponse.Data.ToString(), embeddingsFile.GPTLanguageModel, appSettings);
 
             //Generate embedding/vector using OpenAI embedding API
             var createEmbeddingsResponse = await CreateEmbeddings(appSettings, embeddingsFile.EmbeddingLanguageModel, ((List<ChunkDto>)createChunkReponse.Data));
@@ -176,6 +224,7 @@ namespace App.Core.OpenAI.Services.Implementations
             
                 //return response
                 generatedEmbeddingsDto.CreatedEmbeddingsResponse = createdEmbeddingsResponseDto;
+                generatedEmbeddingsDto.QuestionSet = questionSetResponse.QuestionSet;
                 generatedEmbeddingsDto.IsSuccessful = true;
             }
 

@@ -15,7 +15,7 @@
         public int TopP { get; set; }
         public int FrequencyPenalty { get; set; }
         public int PresencePenalty { get; set; }
-
+        public int ContextLengthForQuestionSet { get; set; }
 
 
         public string PineConeAPIkey { get; set; }
