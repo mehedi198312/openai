@@ -1,3 +1,4 @@
+using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Chat;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions;
 using App.Core.OpenAI.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace App.API.Controllers
 
         [Authorize(Key.One)]
         [HttpPost()]
-        public async Task<IActionResult> Completions(CompletionsRequestDto request)
+        public async Task<IActionResult> Completions(ChatCompletionsRequestDto request)
         {
 
             #region "Sample Request"
@@ -40,7 +41,7 @@ namespace App.API.Controllers
             string token = _configuration.GetSection("OpenAI").GetSection("APIkeys").Value;
             string baseurl = _configuration.GetSection("OpenAI").GetSection("BaseUrl").Value;
 
-            return Ok(await _completionsService.Completions(request, token, baseurl));
+            return Ok(await _completionsService.ChatCompletions(request, token, baseurl));
         }
         
     }
