@@ -42,7 +42,7 @@ namespace App.API.Controllers
             appSettings.EmbeddingFile = _configuration.GetSection("SearchFile").GetSection("EmbeddingFile").Value;
             appSettings.ChunkSize = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ChunkSize").Value.ToString());
             appSettings.ChunkOverlap = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ChunkOverlap").Value.ToString());
-            appSettings.Model = _configuration.GetSection("SearchFile").GetSection("Model").Value.ToString();
+            appSettings.Model = request.GPTModel; //_configuration.GetSection("SearchFile").GetSection("Model").Value.ToString(); 
             appSettings.Temperature = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("Temperature").Value.ToString());
             appSettings.MaxTokens = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("MaxTokens").Value.ToString());
             appSettings.TopP = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("TopP").Value.ToString());
@@ -59,30 +59,28 @@ namespace App.API.Controllers
 
         [Authorize(Key.One)]
         [HttpPost("QueryByVector")]
-        public async Task<IActionResult> QueryByVector(SearchEmbeddingDto searchEmbedding)
+        public async Task<IActionResult> QueryByVector(ChatCompletionsWithFileRequestDto chatCompletionsWithFileRequestDto) //ChatCompletionsWithFileRequestDto searchEmbedding)
         {
+
             AppSettings appSettings = new AppSettings();
 
+            // OpenAI Configuration Values
             appSettings.OpenAiAPIkey = _configuration.GetSection("OpenAI").GetSection("APIkeys").Value;
             appSettings.OpenAiBaseUrl = _configuration.GetSection("OpenAI").GetSection("BaseUrl").Value;
 
-            appSettings.EmbeddingModel = _configuration.GetSection("OpenAI").GetSection("EmbeddingModel").Value;
+            //File Chunk size and overlap details
             appSettings.EmbeddingFile = _configuration.GetSection("SearchFile").GetSection("EmbeddingFile").Value;
             appSettings.ChunkSize = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ChunkSize").Value.ToString());
             appSettings.ChunkOverlap = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("ChunkOverlap").Value.ToString());
-            //appSettings.Model = _configuration.GetSection("SearchFile").GetSection("Model").Value.ToString();
-            appSettings.Temperature = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("Temperature").Value.ToString());
-            appSettings.MaxTokens = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("MaxTokens").Value.ToString());
-            appSettings.TopP = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("TopP").Value.ToString());
-            appSettings.FrequencyPenalty = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("FrequencyPenalty").Value.ToString());
-            appSettings.PresencePenalty = Convert.ToUInt16(_configuration.GetSection("SearchFile").GetSection("PresencePenalty").Value.ToString());
 
+            // Pinecore configuration            
             appSettings.PineConeAPIkey = _configuration.GetSection("PineCone").GetSection("APIkey").Value;
             appSettings.PineConeEnvironment = _configuration.GetSection("PineCone").GetSection("Environment").Value;
             appSettings.IndexName = _configuration.GetSection("PineCone").GetSection("IndexName").Value;
             appSettings.TopK = Convert.ToUInt16(_configuration.GetSection("PineCone").GetSection("TopK").Value);
 
-            return Ok(await _embeddingsService.QueryByVector(searchEmbedding, appSettings));
+            return Ok(await _embeddingsService.QueryByVector(chatCompletionsWithFileRequestDto, appSettings));
+
         }
 
     }

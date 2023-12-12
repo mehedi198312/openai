@@ -12,7 +12,7 @@ namespace App.Core.OpenAI.Services.Interfaces
 
         Task<BaseResponse> Fetch(string vector, AppSettings appSettings);
 
-        Task<BaseResponse> QueryByVector(SearchEmbeddingDto searchEmbedding, List<float> vector, AppSettings appSettings);
+        Task<BaseResponse> QueryByVector(ChatCompletionsWithFileRequestDto searchEmbedding, List<float> vector, AppSettings appSettings);
 
         Task<BaseResponse> DeleteIndex(AppSettings appSettings);
     }

@@ -150,7 +150,7 @@ namespace App.Core.OpenAI.Services.Implementations
             return baseResponse;
         }
 
-        public async Task<BaseResponse> QueryByVector(SearchEmbeddingDto searchEmbedding, List<float> vector, AppSettings appSettings)
+        public async Task<BaseResponse> QueryByVector(ChatCompletionsWithFileRequestDto searchEmbedding, List<float> vector, AppSettings appSettings)
         {
             var baseResponse = new BaseResponse();
             baseResponse.Message = MessageManager.PinecoreConnectionFail;

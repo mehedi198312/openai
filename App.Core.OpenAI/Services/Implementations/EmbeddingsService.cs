@@ -1,4 +1,5 @@
 ﻿using App.Core.OpenAI.Common;
+using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Chat;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Common;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Completions;
 using App.Core.OpenAI.Features.OpenAIFeatures.Dto.Embeddings;
@@ -169,6 +170,7 @@ namespace App.Core.OpenAI.Services.Implementations
             if (context.Length > appSettings.ContextLengthForQuestionSet)
                 context = context.Substring(0, appSettings.ContextLengthForQuestionSet);
 
+
             //Get a set of sample questions which are highly depends on provided file.
             CompletionsRequestDto completionsRequestDto = new CompletionsRequestDto();
             completionsRequestDto.Model = languageModel;// "text-davinci-003";
@@ -183,6 +185,38 @@ namespace App.Core.OpenAI.Services.Implementations
                 "Context: " + context + "\n\n---\n\n";
 
             var result = await _completionsService.Completions(completionsRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);
+
+            #region "Chat Model unable to generate question set 11/12/2023"
+
+            //ChatCompletionsRequestDto chatCompletionsWithFileRequestDto = new ChatCompletionsRequestDto();
+            //chatCompletionsWithFileRequestDto.Model = languageModel;
+            //chatCompletionsWithFileRequestDto.Temperature = appSettings.Temperature;
+            //chatCompletionsWithFileRequestDto.MaxTokens = appSettings.MaxTokens;
+            //chatCompletionsWithFileRequestDto.TopP = appSettings.TopP;
+            //chatCompletionsWithFileRequestDto.FrequencyPenalty = appSettings.FrequencyPenalty;
+            //chatCompletionsWithFileRequestDto.PresencePenalty = appSettings.PresencePenalty;
+            //chatCompletionsWithFileRequestDto.Messages = new List<ChatCompletionsMessagesRequestDto>();
+
+            //chatCompletionsWithFileRequestDto.Messages.Add(
+            //    new ChatCompletionsMessagesRequestDto
+            //    {
+            //        Role = "system",
+            //        Content = "Create a question set based on the context below, " +
+            //            "and if unable to create a set of question based on the context, say \"Sorry, I am unable to generate question set.\"\n\n"
+            //    });
+
+            //chatCompletionsWithFileRequestDto.Messages.Add(
+            //    new ChatCompletionsMessagesRequestDto
+            //    {
+            //        Role = "user",
+            //        Content = "Context: " + context + "\n\n---\n\n"+
+            //        "Question:"
+            //    });
+
+            //var result = await _completionsService.ChatCompletions(chatCompletionsWithFileRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);
+
+
+            #endregion
 
             if (!result.IsSuccessful)
                 return sampleQuestionsSet;
@@ -212,7 +246,7 @@ namespace App.Core.OpenAI.Services.Implementations
                 generatedEmbeddingsDto.Message = createChunkReponse.Message;
 
             //Generate a quesiton set based on provided file context
-            var questionSetResponse = await CreateQuestionSet(fileUploadResponse.Data.ToString(), embeddingsFile.GPTLanguageModel, appSettings);
+            var questionSetResponse = await CreateQuestionSet(fileUploadResponse.Data.ToString(), appSettings.Model, appSettings);
 
             //Generate embedding/vector using OpenAI embedding API
             var createEmbeddingsResponse = await CreateEmbeddings(appSettings, embeddingsFile.EmbeddingLanguageModel, ((List<ChunkDto>)createChunkReponse.Data));
@@ -231,19 +265,20 @@ namespace App.Core.OpenAI.Services.Implementations
             return generatedEmbeddingsDto;
         }
 
-        public async Task<AnswerFromVectorDto> QueryByVector(SearchEmbeddingDto searchEmbedding, AppSettings appSettings)
+        public async Task<AnswerFromVectorDto> QueryByVector(ChatCompletionsWithFileRequestDto chatCompletionsWithFileRequestDto, AppSettings appSettings)
         {
             AnswerFromVectorDto answerFromVectorDto = new AnswerFromVectorDto();
+            var questionOfUser = chatCompletionsWithFileRequestDto.AskedOrSearch;
 
             //Create search string embedding
-            var searchStringEmbedding = await CreateEmbedding(appSettings, searchEmbedding.EmbeddingLanguageModel, searchEmbedding.AskedOrSearch);
+            var searchStringEmbedding = await CreateEmbedding(appSettings, chatCompletionsWithFileRequestDto.EmbeddingLanguageModel, questionOfUser);
             if (!searchStringEmbedding.IsSuccessful)
                 return answerFromVectorDto;
 
             //Search by vector
             var createdEmbeddingsResponseDto = (CreatedEmbeddingsResponseDto)searchStringEmbedding.Data;
             var searchStringVector = createdEmbeddingsResponseDto.Data.FirstOrDefault().Embedding;
-            var scoredVectors = await _pineConeService.QueryByVector(searchEmbedding, searchStringVector, appSettings);
+            var scoredVectors = await _pineConeService.QueryByVector(chatCompletionsWithFileRequestDto, searchStringVector, appSettings);
             if (!scoredVectors.IsSuccessful)
                 return answerFromVectorDto;
 
@@ -254,30 +289,41 @@ namespace App.Core.OpenAI.Services.Implementations
                 filterredString += scoredVector.Metadata.FirstOrDefault().Value.Inner;
                 noOfPages.Add(Convert.ToInt16(scoredVector.Metadata.ToList()[2].Value.Inner));
             }
+           
+            ChatCompletionsRequestDto chatCompletionsRequestDto = new ChatCompletionsRequestDto();
+            chatCompletionsRequestDto.Model = chatCompletionsWithFileRequestDto.GPTModel;
+            chatCompletionsRequestDto.Temperature = chatCompletionsWithFileRequestDto.Temperature;
+            chatCompletionsRequestDto.MaxTokens = chatCompletionsWithFileRequestDto.MaxTokens;
+            chatCompletionsRequestDto.TopP = chatCompletionsWithFileRequestDto.TopP;
+            chatCompletionsRequestDto.FrequencyPenalty = chatCompletionsWithFileRequestDto.FrequencyPenalty;
+            chatCompletionsRequestDto.PresencePenalty = chatCompletionsWithFileRequestDto.PresencePenalty;
+            chatCompletionsRequestDto.Messages = new List<ChatCompletionsMessagesRequestDto>();
 
-            //Get search result from filtered context which is get by vector search.
-            CompletionsRequestDto completionsRequestDto = new CompletionsRequestDto();
-            completionsRequestDto.Model = searchEmbedding.GPTLanguageModel;// "text-davinci-003";
-            completionsRequestDto.Temperature = appSettings.Temperature;//  0;
-            completionsRequestDto.MaxTokens = appSettings.MaxTokens;//  150;
-            completionsRequestDto.TopP = appSettings.TopP;//  1;
-            completionsRequestDto.FrequencyPenalty = appSettings.FrequencyPenalty;//  0;
-            completionsRequestDto.PresencePenalty = appSettings.PresencePenalty;//  0;
+            chatCompletionsRequestDto.Messages.Add(
+                new ChatCompletionsMessagesRequestDto
+                {
+                    Role = "system",
+                    Content = "Answer the question based on the context below, " +
+                        "and if the question can't be answered based on the context, say \"I don't know\"\n\n"
+                });
 
-            completionsRequestDto.Prompt = "Answer the question based on the context below, " +
-                "and if the question can't be answered based on the context, say \"I don't know\"\n\n" +
-                "Context: " + filterredString + "\n\n---\n\n" +
-                "Question: " + searchEmbedding.AskedOrSearch + "\n" +
-                "Answer:";
+            chatCompletionsRequestDto.Messages.Add(
+                new ChatCompletionsMessagesRequestDto
+                {
+                    Role = "user",
+                    Content = "Context: " + filterredString + "\n\n---\n\n" +
+                              "Question: " + chatCompletionsWithFileRequestDto.AskedOrSearch + "\n" +
+                              "Answer:"
+                });
 
-            var result  = await _completionsService.Completions(completionsRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);
+            var result  = await _completionsService.ChatCompletions(chatCompletionsRequestDto, appSettings.OpenAiAPIkey, appSettings.OpenAiBaseUrl);
             
             if (!result.IsSuccessful)
                 return answerFromVectorDto;
 
             answerFromVectorDto.IsSuccessful = true;
             answerFromVectorDto.CreatedEmbeddingsResponse = createdEmbeddingsResponseDto;
-            answerFromVectorDto.CompletionsResponse = (CompletionsResponseDto)result.Data;           
+            answerFromVectorDto.CompletionsResponse = (ChatCompletionsResponseDto)result.Data;           
             answerFromVectorDto.NoOfPages = noOfPages.Distinct().ToList();
 
             return answerFromVectorDto;

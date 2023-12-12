@@ -7,6 +7,6 @@ namespace App.Core.OpenAI.Services.Interfaces
     public interface IEmbeddingsService
     {
         Task<GeneratedEmbeddingsDto> CreateEmbeddings(EmbeddingsFileDto request, AppSettings appSettings);
-        Task<AnswerFromVectorDto> QueryByVector(SearchEmbeddingDto searchEmbedding, AppSettings appSettings);
+        Task<AnswerFromVectorDto> QueryByVector(ChatCompletionsWithFileRequestDto searchEmbedding, AppSettings appSettings);
     }
 }
