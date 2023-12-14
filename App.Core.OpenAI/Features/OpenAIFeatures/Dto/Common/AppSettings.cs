@@ -22,5 +22,7 @@
         public string PineConeEnvironment { get; set; }
         public string IndexName { get; set; }
         public uint TopK { get; set; }
+
+        public string TTLFile { get; set; }
     }
 }

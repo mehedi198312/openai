@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="TTLFile\" />
     <Folder Include="UploadFile\" />
   </ItemGroup>
 

@@ -7,5 +7,6 @@ namespace App.Core.OpenAI.Services.Interfaces
     {
         Task<BaseResponse> CreateTranscriptions(CreateTranscriptionsRequestDto request, string token, string baseUrl);
         Task<BaseResponse> CreateTranslations(CreateTranslationsRequestDto request, string token, string baseUrl);
+        Task<BaseResponse> TextToSpeech(TextToSpeechRequestDto request, AppSettings appSettings);
     }
 }
